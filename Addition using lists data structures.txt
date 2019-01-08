@@ -1,0 +1,367 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package lab1.pkg2si4;
+import java.util.Random;
+
+/**
+ *
+ * @author Siddesh
+ */
+public class HugeInteger {
+    private DLLNode head; 
+    private DLLNode tail; 
+    
+    public HugeInteger(String val) throws IllegalArgumentException{
+        head = new DLLNode(0,null,null);
+        tail = new DLLNode(0,null, head);
+        head.next = tail;
+        DLLNode p = head.next;
+        
+        if(val.charAt(0) == '0'){
+            throw new IllegalArgumentException("Number begins with 0, invalid!");
+        }
+        for (int j =0;j< val.length(); j++)
+        {
+            if (val.charAt(0) == '-'){
+                continue;
+            }
+            else if(val.charAt(j) < '0' || val.charAt(j) > '9'){
+                throw new IllegalArgumentException("Invalid string!");
+        }
+        }
+        
+        
+        if(val.charAt(0)== '-') 
+        {
+            p = new DLLNode(-1,head.next, head); //integer -1 inserted to first node to indicate negative HugeInteger
+            head.next = p;
+            p.next.prev = p; 
+            p = p.next; 
+        }
+        else
+        {
+            p = new DLLNode(Integer.parseInt(String.valueOf(val.charAt(0))),head.next,head); //
+            head.next = p;
+            p.next.prev = p; 
+            p = p.next; 
+        }
+        for( int i = 1; i< val.length(); i++)
+        {
+            p = new DLLNode(Integer.parseInt(String.valueOf(val.charAt(i))),p,p.prev);
+            p.prev.next = p;
+            p.next.prev = p; 
+            p = p.next;   
+        }
+    }
+    
+    public HugeInteger(int n) {
+        
+        if(n<= 0){
+            throw new IllegalArgumentException("Number greater than 0 needed!");
+        }
+        
+        head = new DLLNode(0,null, null);
+        tail = new DLLNode(0,null, head);
+        head.next = tail;
+        DLLNode p = head.next; 
+        
+        Random rando = new Random(); 
+        int sign = rando.nextInt(2); 
+        
+        if(sign == 0)
+        {
+            p = new DLLNode(-1,p,p.prev);
+            p.next.prev = p;
+            p.prev.next = p;
+            p = p.next;
+        }
+        for (int i = 0; i < n; i++)
+        {
+            p = new DLLNode(rando.nextInt(9)+1,p, p.prev);
+            p.next.prev = p;
+            p.prev.next = p; 
+            p = p.next;
+        }        
+    }
+    
+    // ADDITION OF 2 NUMBERS ----------------------------------------------------------------------------------------
+    
+    public HugeInteger add(HugeInteger h){
+        
+        String sum1 = "";
+        String sum3 = new String();
+        DLLNode p = tail; //node for this integer
+        DLLNode ph = h.tail; //node for the input h integer 
+        
+        //CASE 1 : ADDITION OF 2 POSITIVE NUMBERS------------------------------------------
+        if(head.next.value != -1 && h.head.next.value != -1)
+        {
+            if(this.compareTo(h) == -1)
+            {
+                int carry = 0;
+                while(p.prev!=head)
+                {
+                    int s = p.prev.value +  ph.prev.value + carry;
+                    if (s >= 10)
+                {
+                    sum1 += s%10;
+                    p = p.prev;
+                    ph = ph.prev;
+                    carry = 1; 
+                }
+                else
+                {
+                    sum1 += s;
+                    p = p.prev;
+                    ph = ph.prev; 
+                    carry = 0; 
+                }
+            }
+            while(ph.prev!= h.head) //add reamining numbers of the bigger number 
+            {
+                int s2 = ph.prev.value + carry; 
+                if(s2>=10){
+                    sum1 += s2%10;
+                    carry =1;
+                } 
+                else{
+                    sum1 += s2;
+                    carry = 0; 
+                }
+                ph = ph.prev;
+            }
+            if (sum1.charAt(sum1.length()-1) == '0'){
+                sum1 += 1; 
+            }
+        }
+        else
+        {
+            int carry = 0; 
+            while(ph.prev!=h.head)
+            {
+                int s = p.prev.value +  ph.prev.value + carry;
+                if (s >= 10)
+                {
+                    sum1 += s%10;
+                    p = p.prev;
+                    ph = ph.prev;
+                    carry = 1; 
+                }
+                else
+                {
+                    sum1 += s;
+                    p = p.prev;
+                    ph = ph.prev;
+                    carry = 0; 
+                }
+            }
+            while(p.prev!= head) //add reamining numbers of the bigger number 
+            {
+                int s2 = p.prev.value + carry; 
+                if(s2>=10){
+                    sum1 += s2%10;
+                    carry =1;
+                } 
+                else{
+                    sum1 += s2;
+                    carry = 0; 
+                }
+                p = p.prev;
+                }
+            if (sum1.charAt(sum1.length()-1) == '0'){
+                sum1 += 1; 
+                }
+            }
+       }
+       
+       //CASE 2 ADDITION OF 2 NEGATIVE NUMBERS -------------------------------------------
+        else if(head.next.value == -1 && h.head.next.value == -1)
+        {        
+            p = head;
+            p.next = p.next.next;
+            p = p.next;
+            p.prev = head; 
+            
+            ph = h.head;
+            ph.next = ph.next.next;
+            ph = ph.next;
+            ph.prev = h.head;
+            
+            HugeInteger negAdd = this.add(h);
+            DLLNode pn = negAdd.head.next;
+            pn = new DLLNode(-1,pn,pn.prev);
+            pn.next.prev =pn;
+            pn.prev.next = pn; 
+            return negAdd;
+        }
+        //CASE 3 - POSITIVE NUMBER + NEGATIVE NUMBER ----------------------------------
+//        else if(head.next.value == -1 && h.head.next.value != -1){
+//            return h.subtract(this); 
+//        }
+//      //CASE 4 - NEGATIVE NUMBER + POSITIVE NUMBER ----------------------------------
+//        else if(head.next.value != -1 && h.head.next.value == -1){
+//            return this.subtract(h); 
+//        }
+       for(int k =sum1.length()-1; k >=0; k--)
+       {
+           sum3 += sum1.charAt(k);
+       }
+       HugeInteger sum2 = new HugeInteger(sum3);
+       return sum2;
+    }             
+    
+    public HugeInteger subtract(HugeInteger h){
+        DLLNode p; 
+        DLLNode ph;
+        String diff = "";
+        int carry = 0; 
+        if(this.compareTo(h) == 1){
+            
+            if(head.next.value != -1 && h.head.next.value == -1){ //pos subtract neg becomes addition of 2 pos numbers
+                ph = h.head;
+                ph.next = ph.next.next;
+                ph = ph.next;
+                ph.prev = h.head;
+                HugeInteger diff1 = this.add(h); 
+                return diff1; 
+            }
+            else if(head.next.value != -1 && h.head.next.value != -1){
+                p = tail; 
+                ph = h.tail; 
+                
+                while(ph.prev != h.head) {
+                    if(p.prev.value < ph.prev.value)
+                    {
+                        diff += (p.prev.value + 10 + carry - ph.prev.value);
+                        p = p.prev;
+                        ph = ph.prev;
+                        carry = -1;
+                       if(p.prev.prev.value == 0){
+                           carry =0;   
+                        }
+                    }
+                    else
+                    {
+                        diff += (p.prev.value + carry - ph.prev.value); 
+                        p = p.prev;
+                        ph = ph.prev;
+                        carry = 0; 
+                    }
+                while(p.prev != head){
+                    diff += (p.prev.value + carry); 
+                    p = p.prev;
+                    carry = 0; 
+                }
+                    
+                }
+            }
+        }
+        String sub = "";
+        for( int k = diff.length()-1; k >= 0; k--){
+            sub += diff.charAt(k);
+        }
+        HugeInteger ans = new HugeInteger(sub);
+        return ans; 
+    }
+    
+    public int compareTo(HugeInteger h){
+        
+        DLLNode p = head; //node for this integer
+        DLLNode ph = h.head; //node for the input h integer 
+        
+        int sizeThis = 0, sizeH = 0;
+        
+        while(p.next!=tail)
+        {
+            sizeThis++;
+            p = p.next;
+        }
+        while(ph.next!=h.tail)
+        {
+            sizeH++;
+            ph = ph.next; 
+        }
+        p = head;
+        ph = h.head; 
+        if( head.next.value != -1 && h.head.next.value != -1)
+        {
+            if ( sizeThis > sizeH){ //this is bigger than h 
+                return 1;
+            }
+            else if( sizeThis < sizeH){
+                return -1;
+            }
+            
+            while(p.next!= tail){
+                if(p.next.value == ph.next.value){
+                    p = p.next;
+                    ph = ph.next;
+                    continue;
+                }
+                else if(p.next.value > ph.next.value){
+                    return 1;
+                }
+                else{ 
+                    return -1; 
+                }
+            }
+            return 0; //both numbers are the same
+        }
+        else if( head.next.value == -1 && h.head.next.value != -1 )
+        {
+            return -1; 
+        }
+        else if(head.next.value != -1 && h.head.next.value == -1)
+        {
+            return 1; 
+        }
+        else
+        {
+            if ( sizeThis > sizeH){  
+                return -1; //bigger size negative number is smaller value wise 
+            }
+            else if( sizeThis < sizeH){
+                return 1; //smaller size negative number is bigger value wise 
+            }
+            
+            p = head.next;
+            ph = h.head.next; 
+            while(p.next!= tail){
+                if(p.next.value == ph.next.value){
+                    p = p.next;
+                    ph = ph.next;
+                    continue;
+                }
+                else if(p.next.value > ph.next.value){
+                    return -1; //higher value negative number is smaller 
+                }
+                else{ 
+                    return 1; 
+                }
+            }
+            return 0; //both numbers are the same   
+        }
+    }
+    
+    public String toString(){
+        
+        String output = new String(); 
+        DLLNode p = head;
+        
+        if(p.next.value == -1)
+        {
+            output += "-";
+            p = p.next; 
+        }
+        while(p.next!= tail)
+        {
+            output += p.next.value;
+            p = p.next; 
+        }
+        return output;    
+    }
+    
+}
